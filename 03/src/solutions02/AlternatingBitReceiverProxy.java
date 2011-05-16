@@ -1,3 +1,4 @@
+package solutions02;
 import vsFramework.Channel;
 import vsFramework.Message;
 

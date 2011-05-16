@@ -1,3 +1,4 @@
+package solutions02;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;

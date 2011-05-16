@@ -1,3 +1,4 @@
+package solutions02;
 import vsFramework.*;
 
 public class HelloWorld {

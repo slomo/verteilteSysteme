@@ -1,3 +1,4 @@
+package solutions02;
 import java.net.InetAddress;
 
 import vsFramework.Message;
