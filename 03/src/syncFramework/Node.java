@@ -10,4 +10,5 @@ public interface Node extends Runnable{
      */
     public Message nextRound(Byte round,Message mesg);
     
+    public void stop();
 }

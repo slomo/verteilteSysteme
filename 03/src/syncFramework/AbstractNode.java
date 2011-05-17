@@ -10,6 +10,7 @@ public abstract class AbstractNode implements Node {
     Channel next;
     Channel prev;
     
+    boolean cond = true;
     
     public AbstractNode(IpNodeId next, IpNodeId prev, IpNodeId seq, int localBasePort) {
         
@@ -19,10 +20,14 @@ public abstract class AbstractNode implements Node {
         
         System.err.println("Node listning for commands on " + seq);
     }
+    
+    public void stop(){
+        cond = false;
+    }
 
     @Override
     public void run() {
-        while(true){
+        while(cond){
             // wait for start of round
             Message m = controllerChan.recv();
             

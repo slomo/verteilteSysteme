@@ -19,30 +19,43 @@ public class TimeSliceNode extends AbstractNode {
     @Override
     public Message nextRound(Byte round, Message mesg) {
 
+      
+        // got message
         if (mesg != null) {
+            byte content = mesg.getData()[0];
+
             if (chooseMyself) {
-                // i choose my self as leader before and propagated my lead =>
-                // just check sanity
-                System.out.println("Round[" + round + "]:" +"Leader is now me: " + id);
-                assert(mesg.getData()[0] == id && round > id);
-                return null;
+                if (content < id) {
+                    System.out.println("Round[" + round + "]:" + "Giving up in favor of " + content + " says " + id);
+                }
+
+                if (content > id) {
+                    System.out.println("Round[" + round + "]:" + "To big, dumping " + content + " says " + id);
+                    return null;
+                }
+                
+                if (content == id) {
+                    System.out.println("Round[" + round + "]:" + "Leader is now me says " + id);
+                    return null;
+                }
             } else {
+                System.out.println("Round[" + round + "]:" + "Forwarded " + content + " says " + id);
                 acceptedOther = true;
-                // some one other won, just spreading the word
-                System.out.println("Round[" + round + "]:" +"Forwarding for " + mesg.getData()[0] +  ": " + id);
-                return mesg;
             }
+            return mesg;
         } else {
-            if (round == id && ! acceptedOther){
+            // it is my turn
+            if (round == id && !acceptedOther) {
+                System.out.println("Round[" + round + "]:" + "Trying to be leader says " + id);
                 chooseMyself = true;
-                // my turn i am going to win
-                System.out.println("Round[" + round + "]:" +"Trying to be leader: " + id);
                 return new ByteMessage(id);
             } else {
-                // wait for it
                 return null;
             }
         }
+        
+        // default: forward, what you got or didn't got
+       
     }
 
 }
