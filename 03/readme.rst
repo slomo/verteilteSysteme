@@ -49,34 +49,28 @@ wird von den Prozessen eine Nachricht empfangen und bearbeitet, in Stufe zwei wi
 eine Antwort gesendet.
 
 ::
+    
     public void performRound(byte number){
-            
-            Message m = new ByteMessage(number);
-            
-            // tell nodes that round started
-            for( Channel n : nodes){
-                n.send(m);
-            }
-            
-            // wait for computation of new message
-            for( Channel c : nodes){
-                Message n = c.recv();
-                assert(n.getData()[0] == number);
-            }
-            
-            // tell nodes to write output
-            for( Channel n : nodes){
-                n.send(m);
-            }
-            
-            // wait for till all nodes are done
-            for( Channel c : nodes){
-                Message n = c.recv();
-                assert(n.getData()[0] == number);
-            }
-            
-            
+        Message m = new ByteMessage(number);
+        // tell nodes that round started
+        for( Channel n : nodes){
+            n.send(m);
         }
+        // wait for computation of new message
+        for( Channel c : nodes){
+            Message n = c.recv();
+            assert(n.getData()[0] == number);
+        }
+        // tell nodes to write output
+        for( Channel n : nodes){
+            n.send(m);
+        }
+        // wait for till all nodes are done
+        for( Channel c : nodes){
+            Message n = c.recv();
+            assert(n.getData()[0] == number);
+        }
+    }
 
 
 Retrosperktive des Frameworks
@@ -109,20 +103,18 @@ Empfängt er kein Paket, stellt er sich in der Runde mit seiner ID zur Wahl, es 
 Dies wird fast 1:1 im Code abgebildet:
 
 ::
+
      // got message
         if (mesg != null) {
             byte content = mesg.getData()[0];
-
             if (chooseMyself) {
                 if (content < id) {
                     System.out.println("Round[" + round + "]:" + "Giving up in favor of " + content + " says " + id);
                 }
-
                 if (content > id) {
                     System.out.println("Round[" + round + "]:" + "To big, dumping " + content + " says " + id);
                     return null;
                 }
-                
                 if (content == id) {
                     System.out.println("Round[" + round + "]:" + "Leader is now me says " + id);
                     return null;
@@ -142,6 +134,4 @@ Dies wird fast 1:1 im Code abgebildet:
                 return null;
             }
         }
-        
-
 
