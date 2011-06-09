@@ -5,7 +5,7 @@ import java.util.Arrays;
 public class HelloMessage extends ProtocollMessage {
 
 	protected final MessageType type = MessageType.HELLO;
-	protected final String name;
+	public final String name;
 
 	public HelloMessage(String name) {
 		this.name = name;
@@ -20,5 +20,7 @@ public class HelloMessage extends ProtocollMessage {
 	public int getLength() {
 		return getData().length;
 	}
+	
+	
 
 }
