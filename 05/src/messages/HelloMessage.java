@@ -1,11 +1,12 @@
 package messages;
 
 import java.util.Arrays;
+import java.util.StringTokenizer;
 
 public class HelloMessage extends ProtocollMessage {
 
 	protected final MessageType type = MessageType.HELLO;
-	public final String name;
+	public String name;
 
 	public HelloMessage(String name) {
 		this.name = name;
@@ -19,6 +20,13 @@ public class HelloMessage extends ProtocollMessage {
 	@Override
 	public int getLength() {
 		return getData().length;
+	}
+
+	@Override
+	public void parse(String s) {
+		StringTokenizer token = new StringTokenizer(s);
+		token.nextToken();
+		name = token.nextToken();
 	}
 	
 	

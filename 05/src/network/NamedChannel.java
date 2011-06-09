@@ -3,6 +3,7 @@ package network;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -23,6 +24,14 @@ public class NamedChannel implements Runnable {
 
 	Channel chan;
 
+	public NamedChannel(Channel chan){
+		this.chan = chan;
+	}
+	
+	public Set<String> getNeigh(){
+		return addresses.keySet();
+	}
+	
 	public void send(String name, ProtocollMessage msg) {
 		try {
 			chan.send(addresses.get(name), msg);
@@ -50,10 +59,6 @@ public class NamedChannel implements Runnable {
 
 		names.put(in.first, msg.name);
 		addresses.put(msg.name, in.first);
-	}
-
-	protected void handleOlleh(Pair<SocketAddress, ProtocollMessage> in) {
-
 	}
 
 	@Override

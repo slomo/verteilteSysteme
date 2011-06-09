@@ -33,4 +33,6 @@ public abstract class ProtocollMessage implements Message {
 		return type;
 	}
 	
+	public abstract void parse(String s);
+	
 }

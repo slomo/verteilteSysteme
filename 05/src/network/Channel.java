@@ -4,14 +4,13 @@ package network;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
-import java.util.Map;
+import java.util.StringTokenizer;
 
-import primitives.Pair;
-
+import messages.MessageType;
 import messages.ProtocollMessage;
+import primitives.Pair;
 
 public class Channel{
 	
@@ -37,11 +36,25 @@ public class Channel{
 		socket.receive(p);
 		
 		
-		byte[] data = p.getData();
+		String data = new String(p.getData());
+		StringTokenizer token = new StringTokenizer(data," ");
 		
-		//TODO: dezerialze message
+		String typeStr = token.nextToken();
+		
+		MessageType type = MessageType.valueOf(typeStr);
 		
 		ProtocollMessage msg = null;
+		try {
+			msg = (ProtocollMessage) type.impl.newInstance();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		msg.parse(data);
+
 		return new Pair<SocketAddress,ProtocollMessage>(p.getSocketAddress(),msg);
 	}
 	

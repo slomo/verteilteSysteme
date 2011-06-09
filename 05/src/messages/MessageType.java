@@ -2,12 +2,15 @@ package messages;
 
 public enum MessageType {
 	
-	HELLO,
-	OLLEH,
+	HELLO(HelloMessage.class),
+	OLLEH(OllehMessage.class),
 	
-	PEERS,
-	SREEP
+	PEERS(HelloMessage.class),
+	SREEP(HelloMessage.class);
 	
+	public Class<?> impl;
 	
-
+	MessageType(Class<?> impl){
+		this.impl = impl;
+	}
 }
