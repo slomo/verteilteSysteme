@@ -31,7 +31,7 @@ public abstract class ProtocollMessage implements Message {
 
 	public abstract MessageType getType();
 	
-	public static ProtocollMessage parse(String s){
+	public static ProtocollMessage parse(String s) throws MessageException{
 	    return null;
 	}
 	
