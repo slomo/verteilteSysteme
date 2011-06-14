@@ -16,7 +16,7 @@ import primitives.Pair;
 
 public class NamedChannel implements Runnable {
 
-	String myName = "DEFAULT";
+	public String myName = "DEFAULT";
 
 	BlockingQueue<Pair<String, ProtocollMessage>> inbox = new LinkedBlockingQueue<Pair<String, ProtocollMessage>>();
 
@@ -25,14 +25,15 @@ public class NamedChannel implements Runnable {
 
 	Channel chan;
 
-	public NamedChannel(Channel chan){
+	public NamedChannel(String  nodeName, Channel chan) {
 		this.chan = chan;
+		this.myName = nodeName;
 	}
-	
-	public Set<String> getNeigh(){
+
+	public Set<String> getNeigh() {
 		return addresses.keySet();
 	}
-	
+
 	public void send(String name, ProtocollMessage msg) {
 		try {
 			chan.send(addresses.get(name), msg);
@@ -46,7 +47,46 @@ public class NamedChannel implements Runnable {
 		return inbox.take();
 	}
 
-	protected void handleNames(Pair<SocketAddress, ProtocollMessage> in)
+	public void connect(SocketAddress addr) {
+		ProtocollMessage hello = new HelloMessage(myName);
+		try {
+			chan.send(addr, hello);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void run() {
+		try {
+			for (;;) {
+				try {
+					System.err.println("WAITING FOR MESSAGE");
+					Pair<SocketAddress, ProtocollMessage> in = chan.recv();
+
+					if (in == null) {
+						continue;
+					}
+
+					System.err.println("MESAGE RECEIVED");
+					MessageType type = in.second.getType();
+					if (type == MessageType.HELLO || type == MessageType.OLLEH) {
+						updateNames(in);
+					} else {
+						inbox.put(new Pair<String, ProtocollMessage>(names
+								.get(in.first), in.second));
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		} catch (InterruptedException e) {
+			// TODO shutdown
+		}
+	}
+
+	protected void updateNames(Pair<SocketAddress, ProtocollMessage> in)
 			throws IOException {
 		HelloMessage msg;
 		if (in.second instanceof HelloMessage) {
@@ -60,34 +100,5 @@ public class NamedChannel implements Runnable {
 
 		names.put(in.first, msg.name);
 		addresses.put(msg.name, in.first);
-	}
-
-	@Override
-	public void run() {
-		try {
-			for (;;) {
-				try {
-				    System.err.println("WAITING FOR MESSAGE");
-					Pair<SocketAddress, ProtocollMessage> in = chan.recv();
-					
-					if(in == null){
-					    continue;
-					}
-					
-					System.err.println("MESAGE RECEIVED");
-					MessageType type = in.second.getType();
-					if (type == MessageType.HELLO || type == MessageType.OLLEH) {
-						handleNames(in);
-					} else {
-						inbox.put(new Pair<String, ProtocollMessage>(names.get(in.first), in.second));
-					}
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		} catch (InterruptedException e) {
-			// TODO shutdown
-		}
 	}
 }

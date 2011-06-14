@@ -21,7 +21,7 @@ public class Channel {
     public static final int MAX_PACKET_LENGTH = 1440;
 
     DatagramSocket socket;
-
+    
     public Channel(SocketAddress local) {
         try {
             socket = new DatagramSocket(local);

@@ -1,7 +1,9 @@
 package messages;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 public class SreepMessage extends ProtocollMessage {
@@ -10,6 +12,9 @@ public class SreepMessage extends ProtocollMessage {
     
     List<String> route;
     List<String> peers;
+    
+    
+    
     
     public SreepMessage(List<String> route, List<String> peers){
         this.route = route;
@@ -33,6 +38,10 @@ public class SreepMessage extends ProtocollMessage {
     @Override
     public MessageType getType() {
         return type;
+    }
+    
+    public Set<String> getPeers(){
+    	return new HashSet<String>(this.peers);
     }
     
     

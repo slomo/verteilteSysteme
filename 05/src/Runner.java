@@ -4,6 +4,8 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
 
+import applications.Cli;
+
 import network.Channel;
 import network.NamedChannel;
 
@@ -13,20 +15,26 @@ public class Runner {
 	
 	public static void main(String args[]){
 		
+		if(args.length != 2){
+			System.err.println("Usage: vs05.jar <name> <localport>");
+			return;
+		}
 		
-	    SocketAddress saddr = null;
-        try {
-            saddr = new InetSocketAddress(InetAddress.getByName("localhost"), 8081);
-        } catch (UnknownHostException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-	    
+		String nodeName = args [0];
+		int port = Integer.parseInt(args[1]);
+		
+		
+	    SocketAddress saddr = new InetSocketAddress(port);
 		Channel chan = new Channel(saddr);
+		NamedChannel n = new NamedChannel(nodeName,chan);
+		Cli c = new Cli(n);
 		
-		NamedChannel n = new NamedChannel(chan);
-
-		n.run();	
+		new Thread(n).start();
+		
+		
+		while(true){
+			c.waitForCommand();
+		}
 		
 	}
 
