@@ -5,7 +5,7 @@ import java.util.StringTokenizer;
 
 public class HelloMessage extends ProtocollMessage {
 
-	protected final MessageType type = MessageType.HELLO;
+	public final MessageType type = MessageType.HELLO;
 	public String name;
 
 	public HelloMessage(String name) {
@@ -22,12 +22,17 @@ public class HelloMessage extends ProtocollMessage {
 		return getData().length;
 	}
 
-	@Override
-	public void parse(String s) {
+
+	public static HelloMessage parse(String s) {
 		StringTokenizer token = new StringTokenizer(s);
-		token.nextToken();
-		name = token.nextToken();
+		token.nextToken(); 
+		return new HelloMessage(token.nextToken());
 	}
+
+    @Override
+    public MessageType getType() {
+        return this.type;
+    }
 	
 	
 

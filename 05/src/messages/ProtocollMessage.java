@@ -7,7 +7,7 @@ import vsFramework.Message;
 public abstract class ProtocollMessage implements Message {
 
 	public static final char SEPERATOR = ' ';
-	protected final MessageType type = null;
+	public final MessageType type = null;
 	
 	@Override
 	public abstract byte[] getData();
@@ -29,10 +29,10 @@ public abstract class ProtocollMessage implements Message {
 		return sb.toString().getBytes();
 	}
 
-	public MessageType getType() {
-		return type;
-	}
+	public abstract MessageType getType();
 	
-	public abstract void parse(String s);
+	public static ProtocollMessage parse(String s){
+	    return null;
+	}
 	
 }

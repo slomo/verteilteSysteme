@@ -2,6 +2,7 @@ package network;
 
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -19,8 +20,8 @@ public class NamedChannel implements Runnable {
 
 	BlockingQueue<Pair<String, ProtocollMessage>> inbox = new LinkedBlockingQueue<Pair<String, ProtocollMessage>>();
 
-	Map<String, SocketAddress> addresses;
-	Map<SocketAddress, String> names;
+	Map<String, SocketAddress> addresses = new HashMap<String, SocketAddress>();
+	Map<SocketAddress, String> names = new HashMap<SocketAddress, String>();
 
 	Channel chan;
 
@@ -66,7 +67,14 @@ public class NamedChannel implements Runnable {
 		try {
 			for (;;) {
 				try {
+				    System.err.println("WAITING FOR MESSAGE");
 					Pair<SocketAddress, ProtocollMessage> in = chan.recv();
+					
+					if(in == null){
+					    continue;
+					}
+					
+					System.err.println("MESAGE RECEIVED");
 					MessageType type = in.second.getType();
 					if (type == MessageType.HELLO || type == MessageType.OLLEH) {
 						handleNames(in);

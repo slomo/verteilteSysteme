@@ -4,11 +4,14 @@ package network;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.util.StringTokenizer;
 
+import messages.HelloMessage;
 import messages.MessageType;
+import messages.OllehMessage;
 import messages.ProtocollMessage;
 import primitives.Pair;
 
@@ -21,8 +24,8 @@ public class Channel{
 	
 	public Channel(SocketAddress local) {
 		try {
-			socket = new DatagramSocket();
-			socket.bind(local);
+		    socket = new DatagramSocket(local);
+		    
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -40,20 +43,27 @@ public class Channel{
 		StringTokenizer token = new StringTokenizer(data," ");
 		
 		String typeStr = token.nextToken();
-		
-		MessageType type = MessageType.valueOf(typeStr);
-		
-		ProtocollMessage msg = null;
-		try {
-			msg = (ProtocollMessage) type.impl.newInstance();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		MessageType type = null;
+		try{
+		    type = MessageType.valueOf(typeStr);
+		} catch(IllegalArgumentException e) {
+		    System.err.println("GARBAGE: " + data);
+		    return null;
 		}
-		msg.parse(data);
+		ProtocollMessage msg = null;
+		
+		switch (type) {
+        case HELLO:
+            msg = HelloMessage.parse(data);
+            break;
+        case OLLEH:
+            msg = OllehMessage.parse(data);
+            break;
+        default:
+            System.err.println("GOT GARBAGE: " + data);
+            break;
+        }
+		
 
 		return new Pair<SocketAddress,ProtocollMessage>(p.getSocketAddress(),msg);
 	}
