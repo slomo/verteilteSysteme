@@ -2,3 +2,8 @@
 .project
 bin
 *.class
+
+
+# erlang
+erl_crash.dump
+*.beam
