@@ -8,20 +8,20 @@
 %% testing only
 -export([decodeMsg/1,processPackage/3]).
 
-% Messages 
+% Messages
 -record(hello,{name}).
 -record(olleh,{name}).
 
 -record(state,{socket,named}).
 
-start(Port, Name) -> 
+start(Port, Name) ->
     gen_server:start(?MODULE,{Port,Name},[]).
 
 init({Port,Name}) ->
     % start named
     {ok,Named} = gen_server:start(named,Name,[]),
     register(named,Named),
-    
+
     case gen_udp:open(Port) of
         {ok, Socket} ->
             gen_udp:controlling_process(Socket,self()),
@@ -33,7 +33,7 @@ init({Port,Name}) ->
     end.
 
 handle_call(Request,Sender,State = #state{socket = Socket}) ->
-    case Request of     
+    case Request of
         {udp, _Socket, IP, InPortNo, Packet} ->
             processPackage(IP, InPortNo,Packet),
             {noreply,State};
@@ -49,7 +49,7 @@ handle_cast(Request, State) ->
     {noreply,State}.
 
 handle_info(Info, State) ->
-    case Info of     
+    case Info of
         {udp, _Socket, IP, InPortNo, Packet} ->
             spawn(?MODULE,processPackage,[IP, InPortNo,Packet]),
             {noreply,State};
@@ -74,7 +74,7 @@ terminate(_Reason,State = #state{socket= Socket}) ->
 
 processPackage(IP, InPortNo, Packet) ->
     try decodeMsg(Packet) of
-        #hello{name = Name} -> 
+        #hello{name = Name} ->
             gen_server:call(named,{addEntry,Name,{IP,InPortNo}}),
             {myName,MyName} = gen_server:call(named,{getMyName}),
             gen_server:call(netd,{send,{IP,InPortNo},encodeMsg(#olleh{name = MyName})});
@@ -87,13 +87,13 @@ processPackage(IP, InPortNo, Packet) ->
 %% ------------- pack and unpack
 
 % @param Packet raw input String
-decodeMsg(Packet) -> 
+decodeMsg(Packet) ->
     [Type | Content] = string:tokens(Packet," "),
-    case Type of 
-        "HELLO" -> 
+    case Type of
+        "HELLO" ->
             [Name|[]] = Content,
             #hello{name=Name};
-        "OLLEH" -> 
+        "OLLEH" ->
             [Name|[]] = Content,
             #olleh{name=Name}
     end.
@@ -103,6 +103,6 @@ encodeMsg(#olleh{name=Name}) ->
 
 log(Obj) ->
     io:write(Obj).
-log(Msg,Obj) -> 
+log(Msg,Obj) ->
     io:write(Msg),
     io:write(Obj).
