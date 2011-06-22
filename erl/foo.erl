@@ -77,6 +77,14 @@ terminate(_Reason,_State = #state{socket= Socket}) ->
     gen_udp:close(Socket),
     ok.
 
+% --- send -------------------------------------------------------------------
+
+
+sendMsg(Msg) ->
+    gen_server:call(netd,{send,NextHop,NextMsg}).
+
+
+
 % --- processing logic --------------------------------------------------------
 processPackage(IP, InPortNo, Packet) ->
     try decodeMsg(Packet) of
@@ -172,6 +180,23 @@ encodeMsg(#routed{routeTodo = Todo, routeDone = Done, content = Content}) ->
         #sreep{peers=Peers} ->
             "SREEP " ++ RouteString ++ " # " ++ string:join(Peers," ")
     end.
+
+% --- Peersearch --------------------------------------------------------------
+
+% found {name,[name,name,name]}
+-record(peerState,{toTest,found,myName}).
+
+start() ->
+    {neighs,Neighs} = gen_sever:call(named,{getNeighs}),
+    {myName,MyName} = gen_server:call(named,{getMyName}),
+    peers(#state{toTest=Neighs,myName = MyName}).
+
+
+peers(State = #state{toTest,found}) ->
+    receive
+        #sreep{doneRoute = DoneRoute, peers=Peers} ->
+            
+
 
 % --- Logging -----------------------------------------------------------------
 
