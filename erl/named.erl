@@ -11,19 +11,22 @@ init(MyName) ->
     {ok,#namedState{myName = MyName}}.
 
 handle_call(Msg,_Remote,State = #namedState{neigh = Table,myName = MyName}) ->  
-        case Msg of 
+        case Msg of
+            {getNeighs} ->
+                {Neighs,_Addrs} = lists:unzip(Table),
+                {reply,{neighs,Neighs},State};
             {getName,Addr} ->  % Addr = {Ip,Port}
                 {Name,Addr} = lists:keyfind(Addr,2,Table),
                 {reply,{name,Name},State};
             {getAddr,Name} ->
                 {Name,Addr} = lists:keyfind(Name,1,Table),
-                {reply,{addr,Addr},State};          
+                {reply,{addr,Addr},State};
             {addEntry,Name,Addr} ->
                 {reply,ok,State#namedState{neigh = [{Name,Addr}|Table]}};
             {getMyName} ->
                 {reply,{myName,MyName},State};
             {stop} ->
-                {stop,shutdown,State}  
+                {stop,shutdown,State}
         end.
 
 code_change(_OldVsn,State,_Extra) ->
