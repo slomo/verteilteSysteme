@@ -75,6 +75,14 @@ zum nächsten Zettel nachrüsten. Nach dem Start der Erlanginstanz steht jedoch
 die Erlang REPL zur Verfügung, mit der man über das Modul planet die Befehle
 planet:start(port,name), planet:connect(ip,port) und planet:peers() absetzen kann.
 
+::
+    1> planet:start(8081,"n2").
+    {ok,<0.37.0>}
+    2> planet:connect({127,0,0,1},8082).
+    ok
+    3> planet:startPeers().
+    {peers,["n2","n3","n1"]}
+
 Implmentierung im Detail
 ------------------------
 
@@ -123,7 +131,7 @@ Funktion.
 
 Falls nur noch ein Knoten in der weiteren Liste drin ist, wird die Nachricht
 weitergeleitet. Andernfalls wird die Nachricht an peered, dir zur Zeit einzige
-Appliaktion weitergeleitet.
+Applikation weitergeleitet.
 
 Ausblick
 --------

@@ -1,7 +1,7 @@
--module(foo).
+-module(planet).
 -behaviour(gen_server).
 
--export([start/2]).
+-export([start/2,peers/0,connect/2]).
 -export([init/1,handle_call/3,code_change/3,handle_cast/2,handle_info/2,terminate/2]).
 -define(UDP_PACKET_LENGTH,200).
 
@@ -19,6 +19,10 @@
 % -----------------------------------------------------------------------------
 
 -record(state,{socket,named}).
+
+% --------------------------------------------------------------------------
+
+
 
 start(Port, Name) ->
     gen_server:start(?MODULE,{Port,Name},[]).
@@ -79,8 +83,11 @@ terminate(_Reason,_State = #state{socket= Socket}) ->
 
 % --- send -------------------------------------------------------------------
 
+connect(Ip,Port) -> 
+    {myName,MyName} = gen_server:call(named,{getMyName}),
+    gen_server:call(netd,{send,{Ip,Port},#hello{name=MyName}}).
 
-sendMsg(Msg) ->
+sendMsg(NextHop,NextMsg) ->
     gen_server:call(netd,{send,NextHop,NextMsg}).
 
 
@@ -109,7 +116,10 @@ routeMsg(_Sender,Msg = #routed{routeDone=Done,routeTodo=Todo,content=Content}) -
     case Todo of
         [MyName] -> % dispatch
             case Content of
-                _ -> todo
+                #peers{} ->
+                    answerPeers(Msg);
+                #sreep{} ->
+                    peered ! Msg
             end;
         [MyName|Remain] ->
             NextMsg = #routed{routeTodo=Remain,routeDone = Done ++ [MyName],content=Content},
@@ -117,6 +127,12 @@ routeMsg(_Sender,Msg = #routed{routeDone=Done,routeTodo=Todo,content=Content}) -
             gen_server:call(netd,{send,NextHop,NextMsg});
         _ -> throw({invalidRoutedMessage,Msg})
     end.
+
+answerPeers(#routed{routeDone=Done,routeTodo=Todo,content=#peers{}}) ->
+    {neighs,Neighs} = gen_server:call(named,{getNeighs}),
+    NewRoute = lists:reverse(Done),
+    [NextHop|_] = NewRoute,
+    sendMsg(NextHop,#routed{routeDone=Todo,routeTodo=NewRoute,content=#sreep{peers=Neighs}}).
 
 % --- pack and unpack ---------------------------------------------------------
 
@@ -186,16 +202,44 @@ encodeMsg(#routed{routeTodo = Todo, routeDone = Done, content = Content}) ->
 % found {name,[name,name,name]}
 -record(peerState,{toTest,found,myName}).
 
-start() ->
-    {neighs,Neighs} = gen_sever:call(named,{getNeighs}),
+peers() ->
+    register(peered,self()),
+    {neighs,Neighs} = gen_server:call(named,{getNeighs}),
     {myName,MyName} = gen_server:call(named,{getMyName}),
-    peers(#state{toTest=Neighs,myName = MyName}).
+    Routes = lists:map(fun(X) -> [X] end,Neighs ),
+    peers(#peerState{toTest=Routes,myName = MyName,found = [MyName|Neighs]}).
 
 
-peers(State = #state{toTest,found}) ->
-    receive
-        #sreep{doneRoute = DoneRoute, peers=Peers} ->
-            
+peers(State = #peerState{toTest=Routes,found=Found,myName=MyName}) ->
+    case Routes of 
+        []  -> 
+            unregister(peered),
+            {peers,Found};
+        [Route|RestToTest] ->
+            [NextHop|_OtherHops] = Route,
+            sendMsg(NextHop,#routed{routeDone=[MyName], routeTodo=Route, content=#peers{}}),
+            receive
+                #routed{ routeDone = DoneRoute, content = #sreep{peers=Peers}} ->
+                    NewPeers = lists:filter(
+                        fun(NewPeer) -> 
+                                not contains(NewPeer,Found)
+                        end,Peers),
+                    NewToTest = lists:map(
+                        fun(NewCandidate) -> 
+                                lists:reverse(DoneRoute) ++ [NewCandidate]
+                        end,NewPeers),
+                    peers(State#peerState{
+                            toTest= RestToTest ++ NewToTest, 
+                            found = Found ++ NewPeers})
+            end
+    end.
+                                
+contains(_Element,[]) ->
+    false;
+contains(Element,[Element|_T]) ->
+    true;
+contains(Element,[_H|T]) ->
+    contains(Element,T).
 
 
 % --- Logging -----------------------------------------------------------------

@@ -5,7 +5,7 @@
 % ------------- name table -------------------
 
 % neig = {name,{ip,port}}
--record(namedState,{neigh,myName}).
+-record(namedState,{neigh = [],myName}).
 
 init(MyName) ->
     {ok,#namedState{myName = MyName}}.
