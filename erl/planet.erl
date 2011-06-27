@@ -1,6 +1,8 @@
 -module(planet).
 -behaviour(gen_server).
 
+-include("./messages.hrl").
+
 -export([start/2,peers/0,connect/2]).
 -export([init/1,handle_call/3,code_change/3,handle_cast/2,handle_info/2,terminate/2]).
 -define(UDP_PACKET_LENGTH,200).
@@ -8,14 +10,6 @@
 % TODO: DEBUG ONLY
 -export([decodeMsg/1,encodeMsg/1]).
 
-% --- Messages ----------------------------------------------------------------
--record(hello,{name}).
--record(olleh,{name}).
-
--record(routed,{routeDone=[],routeTodo=[],content}).
-% contents of routed package
--record(sreep,{peers}).
--record(peers,{}).
 % -----------------------------------------------------------------------------
 
 -record(state,{socket,named}).
@@ -31,7 +25,6 @@ init({Port,Name}) ->
     % start named
     {ok,Named} = gen_server:start(named,Name,[]),
     register(named,Named),
-
     case gen_udp:open(Port) of
         {ok, Socket} ->
             gen_udp:controlling_process(Socket,self()),
@@ -148,6 +141,12 @@ decodeMsg(Packet) ->
             [Name|[]] = Content,
             validateName(Name),
             #olleh{name=Name};
+        "GOODS" ->
+            [Src,Goods] = decodeGoods(Content),
+            #goods{src=Src, goods=Goods};
+        "SDOOG" ->
+            [Src,Goods] = decodeGoods(Content),
+            #sdoog{src=Src, goods=Goods};
         "PEERS" ->
             decodeRouted(Content,
                 fun
@@ -157,14 +156,25 @@ decodeMsg(Packet) ->
                         throw({peersHadMoreContentThanARoute,Remain})
                 end);
         "SREEP" ->
-            decodeRouted(Content,
-                fun
-                    (["#"|List]) ->
-                        #sreep{peers=List}
-                end);
+            decodeRouted(Content,fun (["#"|List]) -> #sreep{peers=List} end);
+        "COST" ->
+            decodeRouted(Content,fun (["#",Good]) ->  #cost{good=Good} end);
+        "TSOC" -> 
+            decodeRouted(Content,fun (["#",Good,"#",Sp,Sa,"#",Bp,Ba]) -> #tsoc{good=Good,buyPrice=Bp, buyAmount=Ba, sellPrice=Sp, sellAmount=Sa} end);
         _ ->
             throw({unkonwMessageType,Type})
     end.
+
+
+decodeGoods(Content) ->
+    [Src|["#"|List]] = Content,
+    Goods = lists:map(
+        fun (Element) -> 
+                [Good,Ttl] = string:rokens(Element,"."),
+                {Good,Ttl}
+        end,List),
+    {Src,Goods}.
+                
 
 decodeRouted(PElements,ContentHandler) ->
     {DoneRoute,["#"|Remain]} = lists:splitwith(fun(A) -> A /= "#" end,PElements),
@@ -194,7 +204,11 @@ encodeMsg(#routed{routeTodo = Todo, routeDone = Done, content = Content}) ->
         #peers{} ->
             "PEERS " ++ RouteString;
         #sreep{peers=Peers} ->
-            "SREEP " ++ RouteString ++ " # " ++ string:join(Peers," ")
+            "SREEP " ++ RouteString ++ " # " ++ string:join(Peers," ");
+        #cost{good=Good} ->
+            "COST " ++ RouteString ++ " # " ++ Good;
+        #tsoc{good=Good, buyPrice=Bp, buyAmount=Ba, sellPrice=Sp, sellAmount=Sa} ->
+            "TSOC " ++ RouteString ++ " # " ++ Good ++ " # "++ Sp  ++ " " ++ Sa ++ " # " ++ Bp ++ " " ++ Ba
     end.
 
 % --- Peersearch --------------------------------------------------------------
