@@ -10,12 +10,7 @@
 % TODO: DEBUG ONLY
 -export([decodeMsg/1,encodeMsg/1]).
 
-% -----------------------------------------------------------------------------
-
 -record(state,{socket,named}).
-
-% --------------------------------------------------------------------------
-
 
 
 start(Port, Name) ->
@@ -24,6 +19,8 @@ start(Port, Name) ->
 init({Port,Name}) ->
     % start named
     {ok,Named} = gen_server:start(named,Name,[]),
+    Warehouse = spawn(fun() -> startWH() end),
+    register(warehouse,Warehouse),
     register(named,Named),
     case gen_udp:open(Port) of
         {ok, Socket} ->
@@ -69,9 +66,10 @@ code_change(_OldVsn,State,_Extra) ->
     {ok,State}.
 
 terminate(_Reason,_State = #state{socket= Socket}) ->
+    gen_udp:close(Socket),
+    unregister(warehouse),
     unregister(netd),
     unregister(named),
-    gen_udp:close(Socket),
     ok.
 
 % --- send -------------------------------------------------------------------
@@ -97,6 +95,10 @@ processPackage(IP, InPortNo, Packet) ->
         Msg ->
             {name,Sender} = gen_server:call(named,{getName,{IP,InPortNo}}),
             case Msg of
+                #goods{} ->
+                    warehouse ! Msg;
+                #sdoog{} -> 
+                    warehouse ! Msg;
                 #routed{} ->
                     routeMsg(Sender,Msg)
             end
@@ -112,7 +114,11 @@ routeMsg(_Sender,Msg = #routed{routeDone=Done,routeTodo=Todo,content=Content}) -
                 #peers{} ->
                     answerPeers(Msg);
                 #sreep{} ->
-                    peered ! Msg
+                    peered ! Msg;
+                #cost{} ->
+                    warehouse ! Msg;
+                #tsoc{} ->
+                    warehouse ! Msg
             end;
         [MyName|Remain] ->
             NextMsg = #routed{routeTodo=Remain,routeDone = Done ++ [MyName],content=Content},
@@ -142,10 +148,10 @@ decodeMsg(Packet) ->
             validateName(Name),
             #olleh{name=Name};
         "GOODS" ->
-            [Src,Goods] = decodeGoods(Content),
+            {Src,Goods} = decodeGoods(Content),
             #goods{src=Src, goods=Goods};
         "SDOOG" ->
-            [Src,Goods] = decodeGoods(Content),
+            {Src,Goods} = decodeGoods(Content),
             #sdoog{src=Src, goods=Goods};
         "PEERS" ->
             decodeRouted(Content,
@@ -170,7 +176,7 @@ decodeGoods(Content) ->
     [Src|["#"|List]] = Content,
     Goods = lists:map(
         fun (Element) -> 
-                [Good,Ttl] = string:rokens(Element,"."),
+                [Good,Ttl] = string:tokens(Element,"."),
                 {Good,Ttl}
         end,List),
     {Src,Goods}.
@@ -254,6 +260,47 @@ contains(Element,[Element|_T]) ->
     true;
 contains(Element,[_H|T]) ->
     contains(Element,T).
+
+
+% --- warehous -----------------------------------------------------------------
+
+-record(wareState,{goods,ages}).
+
+
+startWH() -> do(#wareState{ goods = [{"PetersMütze",20}], ages = []}).
+
+% ages = dict
+do(State= #wareState{goods=Lager,ages = Ages}) ->
+    {myName,MyName} = gen_server:call(named,{getMyName}),
+    receive 
+        #goods{src = Src, goods = Goods} ->
+            {_,Now,_} = now(),
+            {neighs,Neighs} = gen_server:call(named,{getNeighs}),
+            AdditionalAges = lists:map(fun(New) -> {New,0} end,
+                lists:filter(fun(Neigh) -> lists:keyfind(Neigh,1,Ages) =:= false end, Neighs)
+            ),
+            UpdatedAges = lists:map(
+                fun({Node,Age}) -> 
+                        if
+                            Age + 30 < Now -> 
+                                sendMsg(Node,#goods{goods=Goods,src=MyName}),
+                                {Node,Now};
+                            true ->
+                                {Node,Age}
+                        end
+                end,Ages ++ AdditionalAges),
+            NewGoods =  lists:filter(
+                fun({Good,Ttl}) -> (lists:keyfind(Good,1,Lager) =:= false) and (Ttl > 0) end, Goods),
+            UpdatedGoods = Goods ++ lists:map(fun({Good,Ttl}) -> {Good,Ttl - 1} end,NewGoods),
+            sendMsg(Src,#sdoog{goods=Goods,src=MyName}),
+            do(#wareState{goods = UpdatedGoods, ages = UpdatedAges});
+        #routed{ routeDone=Done, content = #cost{good = Good}} ->
+            Todo = [NextHop|_] = lists:reverse(Done),
+            sendMsg(NextHop,#routed{ routeTodo = Todo, routeDone = MyName, content = #tsoc{good=Good,buyPrice=100,buyAmount=100,sellPrice=100,sellAmount=100}})
+    end.
+
+                
+
 
 
 % --- Logging -----------------------------------------------------------------
