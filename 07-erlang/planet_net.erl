@@ -37,11 +37,11 @@ handle_call(Request,_Sender,State = #state{socket = Socket, nameTable = Table, m
             startSender({Ip,Port},#hello{name=MyName}),
             {reply,ok,State};
         getAllNeigh ->
-            {reply,getAllNeighs(Table),State};
+            {reply,planet_nt:getAllNeighs(Table),State};
         getMyName ->
             {reply,MyName,State}
         {updateNeigh,Name,Addr} ->
-            {reply,ok,State#state{ nameTable = putNameAddr(Name,Addr,Table)}}
+            {reply,ok,State#state{ nameTable = planet_nt:putNameAddr(Name,Addr,Table)}}
     end.
 
 handle_cast(Request, State) ->
@@ -76,7 +76,7 @@ startSender(Target,Message,State{socket=Socket,nameTable=Table}) ->
                     {Ip,Port} ->
                         gen_udp:send(Socket,Ip,Port,String);
                     Name ->
-                        {Ip,Port} = getAddr(Name,Table),
+                        {Ip,Port} = planet_nt:getAddr(Name,Table),
                         gen_udp:send(Socket,Ip,Port,String)
                 end
         end).
@@ -85,6 +85,65 @@ startSender(Target,Message,State{socket=Socket,nameTable=Table}) ->
 
 startReceiver(_Source,String,State) ->
     ok.
+
+
+
+processPackage(IP, InPortNo, Packet) ->
+    try decodeMsg(Packet) of
+        #hello{name = Name} ->
+            gen_server:call(named,{addEntry,Name,{IP,InPortNo}}),
+            {myName,MyName} = gen_server:call(named,{getMyName}),
+            gen_server:call(netd,{send,{IP,InPortNo},#olleh{name = MyName}});
+        #olleh{name = Name} ->
+            gen_server:call(named,{addEntry,Name,{IP,InPortNo}});
+        Msg ->
+            {name,Sender} = gen_server:call(named,{getName,{IP,InPortNo}}),
+            case Msg of
+                #goods{} ->
+                    warehouse ! Msg;
+                #sdoog{} ->
+                    warehouse ! Msg;
+                #routed{} ->
+                    routeMsg(Sender,Msg)
+            end
+    catch
+        _ -> throw(unableToParseMessage)
+    end.
+
+routeMsg(_Sender,Msg = #routed{routeDone=Done,routeTodo=Todo,content=Content}) ->
+    {myName,MyName} = gen_server:call(named,{getMyName}),
+    case Todo of
+        [MyName] -> % dispatch
+            case Content of
+                #peers{} ->
+                    answerPeers(Msg);
+                #sreep{} ->
+                    peered ! Msg;
+                #cost{} ->
+                    warehouse ! Msg;
+                #tsoc{} ->
+                    warehouse ! Msg
+            end;
+        [MyName|Remain] ->
+            NextMsg = #routed{routeTodo=Remain,routeDone = Done ++ [MyName],content=Content},
+            [NextHop|_] = Remain,
+            gen_server:call(netd,{send,NextHop,NextMsg});
+        _ -> throw({invalidRoutedMessage,Msg})
+    end.
+
+answerPeers(#routed{routeDone=Done,routeTodo=Todo,content=#peers{}}) ->
+    {neighs,Neighs} = gen_server:call(named,{getNeighs}),
+    NewRoute = lists:reverse(Done),
+    [NextHop|_] = NewRoute,
+    sendMsg(NextHop,#routed{routeDone=Todo,routeTodo=NewRoute,content=#sreep{peers=Neighs}}).
+
+
+
+
+
+
+
+
 
 % --- handle address table -----------------------------
 %
