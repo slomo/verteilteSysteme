@@ -38,9 +38,9 @@ Nachrichten implmentiert habe (ein Framework dafür wäre eigenlich echt genial)
 stellte ich fest, dass ich den kompletten Routing code für cost Nachrichten mit
 benutzen konnte. Durch die mehr oder weniger rein gefrikelte Peersearch, hatte
 ich jedoch noch keine generische Kapslung der Breitensche, die auch weiterhin
-fehlt. 
+fehlt.
 
-Ich entscheide mich erstmal das Goods-Problem anzugehen, da es mir einfacher
+Ich entschied mich erstmal das Goods-Problem anzugehen, da es mir einfacher
 schien. Im prinzip handelt es sich dabei ja nur um einen Cache, wie ich ihn
 schon öfter in Java implmentiert habe. Hier war der Fehler.
 
@@ -115,5 +115,3 @@ Simulation von Nachfrage. Ich fürchte, um die Anfrage korrekt umzusetzen und de
 Code auch im Sinne des nächsten Zettels zu erweitern brauche ich eine andere
 Architektur, oder zumindest umfangreiche Modifikationen. Dem werde ich mich im
 Laufe dieser Woche zu wenden.
-
-
