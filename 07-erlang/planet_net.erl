@@ -3,13 +3,9 @@
 
 -include("./messages.hrl").
 
-
 -export([start/4]).
 -export([init/1,handle_call/3,code_change/3,handle_cast/2,handle_info/2,terminate/2]).
 -define(UDP_PACKET_LENGTH,200).
-
-% TODO: DEBUG ONLY
--export([decodeMsg/1,encodeMsg/1]).
 
 -record(addr,{port,ip}).
 -record(state,{socket,myName,nameTable,distpatcher}).
@@ -86,8 +82,6 @@ startSender(Target,Message,State{socket=Socket,nameTable=Table}) ->
 startReceiver(_Source,String,State) ->
     ok.
 
-
-
 processPackage(IP, InPortNo, Packet) ->
     try decodeMsg(Packet) of
         #hello{name = Name} ->
@@ -136,31 +130,4 @@ answerPeers(#routed{routeDone=Done,routeTodo=Todo,content=#peers{}}) ->
     NewRoute = lists:reverse(Done),
     [NextHop|_] = NewRoute,
     sendMsg(NextHop,#routed{routeDone=Todo,routeTodo=NewRoute,content=#sreep{peers=Neighs}}).
-
-
-
-
-
-
-
-
-
-% --- handle address table -----------------------------
-%
-% Table = {Name,{Port,Ip}}
-
-getAllNeighs(Table) ->
-    {Neighs,_Addrs} = lists:unzip(Table)
-    Neighs.
-
-getName(Addr,Table) ->
-    {Name,Addr} = lists:keyfind(Addr,2,Table),
-    Name.
-
-getAddr(Name,Table) ->
-    {Name,Addr} = lists:keyfind(Name,1,Table),
-    Addr.
-
-putNameAddr(Name,Addr,Table) ->
-    NewTable = lists:keystore(Addr,2,Table,{Name,Addr}).
 
