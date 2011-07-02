@@ -1,5 +1,6 @@
 package udp;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 public class UdpChannelFactory {
@@ -7,10 +8,9 @@ public class UdpChannelFactory {
     static UdpDispatcher dispatcher = null;
 
     protected static void startIfNeeded() {
-
         if (dispatcher == null) {
             dispatcher = new UdpDispatcher();
-            new Thread(dispatcher).run();
+            new Thread(dispatcher).start();
         }
     }
 
@@ -45,12 +45,12 @@ public class UdpChannelFactory {
      *            port to connecht to
      * @return
      */
-    public static UdpChannel newUdpChannel(int local_port, InetSocketAddress remote_addr, int remote_port) {
+    public static UdpChannel newUdpChannel(int local_port, InetAddress remote_addr, int remote_port) {
 
         startIfNeeded();
 
         InetSocketAddress local_addr = new InetSocketAddress(local_port);
-        InetSocketAddress remote = new InetSocketAddress(remote_addr.getAddress(), remote_port);
+        InetSocketAddress remote = new InetSocketAddress(remote_addr, remote_port);
 
         return new UdpChannel(local_addr, remote, dispatcher);
     }

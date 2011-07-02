@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.nio.channels.spi.SelectorProvider;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -21,17 +22,18 @@ public class UdpDispatcher implements Runnable {
 
     Selector selector;
     UdpTable table;
-    Map<SocketAddress, DatagramChannel> channels;
+    Map<Integer, DatagramChannel> channels;
 
     public UdpDispatcher() {
         try {
-            selector = Selector.open();
+            selector = SelectorProvider.provider().openSelector();
+            //selector = Selector.open();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
         table = new UdpTable();
-        channels = new HashMap<SocketAddress, DatagramChannel>();
+        channels = new HashMap<Integer, DatagramChannel>();
 
     }
 
@@ -49,9 +51,10 @@ public class UdpDispatcher implements Runnable {
 
     protected void dispatchForAllSockets() throws IOException {
 
-        if (selector.select() <= 0) { // no events incoming
-            return;
-        }
+       if ( 0 == selector.select(5000)){
+           Thread.yield(); // java sheduler seems to suck
+           return;
+       }
 
         Set<SelectionKey> selectedKeys = selector.selectedKeys();
 
@@ -63,10 +66,9 @@ public class UdpDispatcher implements Runnable {
 
                 ByteBuffer bb = ByteBuffer.allocate(PAKET_SIZE);
                 DatagramChannel dc = (DatagramChannel) key.channel();
-                dc.read(bb);
+                InetSocketAddress remote = (InetSocketAddress) dc.receive(bb);
 
-                SocketAddress local = dc.socket().getLocalSocketAddress();
-                SocketAddress remote = dc.socket().getRemoteSocketAddress();
+                InetSocketAddress local = (InetSocketAddress) dc.socket().getLocalSocketAddress();
 
                 if (remote == null) {
                     log("error, remote was null");
@@ -82,11 +84,13 @@ public class UdpDispatcher implements Runnable {
 
     }
 
-    protected void notifyUdpChannel(SocketAddress local, SocketAddress remote, ByteBuffer bb) {
+    protected void notifyUdpChannel(InetSocketAddress localAddr, InetSocketAddress remote, ByteBuffer bb) {
 
         Message m = new UdpMessage(bb);
 
-        Set<UdpChannel> listners = table.getListners(local);
+        log("Message received" + m.getData().toString());
+        
+        Set<UdpChannel> listners = table.getListners(localAddr.getPort());
         Set<UdpChannel> unbound = new HashSet<UdpChannel>();
 
         // match channels with correct remote first
@@ -111,7 +115,7 @@ public class UdpDispatcher implements Runnable {
         if (unbound.size() > 0) {
             UdpChannel u = unbound.iterator().next();
             u.queue.add(m);
-            u.remote = (InetSocketAddress) remote;
+            u.remote = remote;
             return;
         }
 
@@ -120,7 +124,7 @@ public class UdpDispatcher implements Runnable {
 
     public void register(UdpChannel chan) {
 
-        if (!channels.containsKey(chan.getLocalAddress())) {
+        if (!channels.containsKey(chan.getLocalAddress().getPort())) {
             try {
                 addPortToSelector(chan.getLocalAddress());
             } catch (IOException e) {
@@ -129,7 +133,7 @@ public class UdpDispatcher implements Runnable {
             }
         }
 
-        table.addListner(chan.getLocalAddress(), chan);
+        table.addListner(chan.getLocalAddress().getPort(), chan);
 
     }
 
@@ -138,7 +142,9 @@ public class UdpDispatcher implements Runnable {
         chan = DatagramChannel.open();
         chan.configureBlocking(false);
         chan.socket().bind(local);
+        chan.register(selector, SelectionKey.OP_WRITE);
         chan.register(selector, SelectionKey.OP_READ);
+        channels.put(local.getPort(), chan);
 
     }
 
@@ -147,7 +153,7 @@ public class UdpDispatcher implements Runnable {
     }
 
     public void send(Message m, UdpChannel chan) {
-        DatagramChannel dc = channels.get(chan.getLocalAddress());
+        DatagramChannel dc = channels.get(chan.getLocalAddress().getPort());
         ByteBuffer bb = ByteBuffer.wrap(m.getData());
         try {
             dc.send(bb, chan.getRemoteAddress());

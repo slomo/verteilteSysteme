@@ -8,17 +8,17 @@ import java.util.Set;
 
 public class UdpTable {
     
-    Map<SocketAddress, Set<UdpChannel>> listners = new HashMap<SocketAddress,Set<UdpChannel>>();
+    Map<Integer, Set<UdpChannel>> listners = new HashMap<Integer,Set<UdpChannel>>();
     
   /**  Map<UdpChannel,InetSocketAddress> senders = new HashMap<UdpChannel,InetSocketAddress>();
     Set<UdpChannel> unboundListner = new HashSet<UdpChannel>();
     **/
-    public void addListner(SocketAddress local, UdpChannel chan) {
-        Set<UdpChannel> set = listners.get(local);
+    public void addListner(int port, UdpChannel chan) {
+        Set<UdpChannel> set = listners.get(port);
         
         if(set == null){
             set = new HashSet<UdpChannel>();
-            
+            listners.put(port, set);
         }
         
         set.add(chan);
@@ -32,8 +32,8 @@ public class UdpTable {
         }
     }
     
-    public  Set<UdpChannel> getListners(SocketAddress local) {
-        return listners.get(local);
+    public  Set<UdpChannel> getListners(Integer port) {
+        return listners.get(port);
     }
     /**
     public Set<UdpChannel> getUnboundListnerSet() {

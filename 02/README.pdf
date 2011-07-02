@@ -1,0 +1,346 @@
+%PDF-1.4
+%“Œ‹ž ReportLab Generated PDF document http://www.reportlab.com
+% 'BasicFonts': class PDFDictionary 
+1 0 obj
+% The standard fonts dictionary
+<< /F1 2 0 R
+ /F2 3 0 R
+ /F3 4 0 R >>
+endobj
+% 'F1': class PDFType1Font 
+2 0 obj
+% Font Helvetica
+<< /BaseFont /Helvetica
+ /Encoding /WinAnsiEncoding
+ /Name /F1
+ /Subtype /Type1
+ /Type /Font >>
+endobj
+% 'F2': class PDFType1Font 
+3 0 obj
+% Font Helvetica-Bold
+<< /BaseFont /Helvetica-Bold
+ /Encoding /WinAnsiEncoding
+ /Name /F2
+ /Subtype /Type1
+ /Type /Font >>
+endobj
+% 'F3': class PDFType1Font 
+4 0 obj
+% Font Courier
+<< /BaseFont /Courier
+ /Encoding /WinAnsiEncoding
+ /Name /F3
+ /Subtype /Type1
+ /Type /Font >>
+endobj
+% 'Page1': class PDFPage 
+5 0 obj
+% Page dictionary
+<< /Contents 14 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 13 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Page2': class PDFPage 
+6 0 obj
+% Page dictionary
+<< /Contents 15 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 13 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'R7': class PDFCatalog 
+7 0 obj
+% Document Root
+<< /Outlines 9 0 R
+ /PageLabels 16 0 R
+ /PageMode /UseNone
+ /Pages 13 0 R
+ /Type /Catalog >>
+endobj
+% 'R8': class PDFInfo 
+8 0 obj
+<< /Author ()
+ /CreationDate (D:20110702213522-01'00')
+ /Creator (\(unspecified\))
+ /Keywords ()
+ /Producer (ReportLab PDF Library - www.reportlab.com)
+ /Subject (\(unspecified\))
+ /Title (Verteilte Systeme 02) >>
+endobj
+% 'R9': class PDFOutlines 
+9 0 obj
+<< /Count 3
+ /First 10 0 R
+ /Last 12 0 R
+ /Type /Outlines >>
+endobj
+% 'Outline.0': class OutlineEntryObject 
+10 0 obj
+<< /Dest [ 5 0 R
+ /XYZ
+ 62.69291
+ 707.0236
+ 0 ]
+ /Next 11 0 R
+ /Parent 9 0 R
+ /Title (\334berblick) >>
+endobj
+% 'Outline.1': class OutlineEntryObject 
+11 0 obj
+<< /Dest [ 5 0 R
+ /XYZ
+ 62.69291
+ 608.0236
+ 0 ]
+ /Next 12 0 R
+ /Parent 9 0 R
+ /Prev 10 0 R
+ /Title (Dispatcher) >>
+endobj
+% 'Outline.2': class OutlineEntryObject 
+12 0 obj
+<< /Dest [ 6 0 R
+ /XYZ
+ 62.69291
+ 499.8236
+ 0 ]
+ /Parent 9 0 R
+ /Prev 11 0 R
+ /Title (Channel) >>
+endobj
+% 'R13': class PDFPages 
+13 0 obj
+% page tree
+<< /Count 2
+ /Kids [ 5 0 R
+ 6 0 R ]
+ /Type /Pages >>
+endobj
+% 'R14': class PDFStream 
+14 0 obj
+% page stream
+<< /Length 4964 >>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 741.0236 cm
+q
+BT 1 0 0 1 0 4 Tm 137.6749 0 Td 24 TL /F2 20 Tf 0 0 0 rg (Verteilte Systeme 02) Tj T* -137.6749 0 Td ET
+Q
+Q
+q
+1 0 0 1 62.69291 719.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (Yves Mueller) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 686.0236 cm
+q
+BT 1 0 0 1 0 3.5 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (\334berblick) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 620.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 50 Tm /F1 10 Tf 12 TL 2.60998 Tw (Meine L\366sung gliedert sich ein drei Komponeten. Neben den durch Interfaces gegeben Komponten) Tj T* 0 Tw 2.026905 Tw (\(Channel und Channelfactory\) gibt es noch den UdpDispather. In dieser Klasse sind die eigentlichen) Tj T* 0 Tw .879069 Tw (Funktionalit\344ten abgebildet. Die Factory besteht aus auschlie\337lich statischen Methoden, die es erlauben) Tj T* 0 Tw 1.384524 Tw (neue Channels zu erzeugen und in ein sehr einfaches threadsicheres Singelton-pattern implmentieren,) Tj T* 0 Tw (um immer genau einen Dispatcher zu verwenden.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 587.0236 cm
+q
+BT 1 0 0 1 0 3.5 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Dispatcher) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 521.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 50 Tm /F1 10 Tf 12 TL .979984 Tw (Wie schon gesagt ist der Dispatcher die vermutlich intteresanteste Klasse. Ihm zur Seite steht noch die) Tj T* 0 Tw .374104 Tw (UdpTable ein Wrapper f\374r Maps mit Mengen als Value. Diese Table benutze ich um Status \374ber ein- und) Tj T* 0 Tw .200814 Tw (ausgehende Verbindungen zu halten. Zu den wichtigsten Aufgaben des Dispatcher geh\366rt die Verwaltung) Tj T* 0 Tw .659213 Tw (dieser Informationen und der Sockets. Daf\374r verf\374gt der Dispather \374ber Methoden, die UdpChannels zur) Tj T* 0 Tw (Registrierung ihrer Empfangsw\374nsche nutzen:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 355.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 156 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 134 Tm /F3 10 Tf 12 TL (public void register\(UdpChannel chan\) {) Tj T*  T* (    if \(!channels.containsKey\(chan.getLocalAddress\(\).getPort\(\)\)\) {) Tj T* (        try {) Tj T* (            addPortToSelector\(chan.getLocalAddress\(\)\);) Tj T* (        } catch \(IOException e\) {) Tj T* (            log\("Unable to open ports on socket: " + chan.getLocalPort\(\)\);) Tj T* (        e.printStackTrace\(\);) Tj T* (        }) Tj T* (    }) Tj T* (    table.addListner\(chan.getLocalAddress\(\).getPort\(\),chan\);) Tj T* (}) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 275.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 62 Tm /F1 10 Tf 12 TL .457984 Tw (Die Methode \374berpr\374ft zu erst, ob ein Socket auf dem entsprechnden localen Port schon ge\366ffnet wurde.) Tj T* 0 Tw .313984 Tw (Falls nicht wir dies mittel einer anderen Methode erledigt. Anschlie\337end tr\344gt sich der Channel als Listner) Tj T* 0 Tw .289985 Tw (f\374r diesen Port ein. Es springt ins Auge, das der Channel keine Aussagen \374ber seinen anderen Endpunkt) Tj T* 0 Tw 4.822706 Tw (treffen muss. Der Statusinformationen \374ber die Gegenstelle werden nur im UdpChannel selbst) Tj T* 0 Tw .746136 Tw (gespeichert. Dies ist m\366glich, da die Steuerungslogik zum senden in der Channelimplmentierung ist und) Tj T* 0 Tw (nicht wie die zum Empfangen im Dispatcher.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 209.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 50 Tm /F1 10 Tf 12 TL 1.289983 Tw (Wie gefordert habe ich die Netzwerkschnittstelle mittels java.nio entwickelt, was sich auch als eine der) Tj T* 0 Tw .758651 Tw (Gr\366\337ten Bremesen herrausstellte \(Diese war mein erster Kontak mit nio\). Ich hatte schon l\344nger auf der) Tj T* 0 Tw .648555 Tw (Agenda die asynchronen Netzwerkqaulit\344ten von Java zu begutachten, und so habe ich die Aufgabe mit) Tj T* 0 Tw 2.116905 Tw (einem Selector implmentiert \(wobei mir auch keine bessere Methode, au\337er mit sehr vielen Threads) Tj T* 0 Tw (einf\344llt\).) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 155.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 38 Tm /F1 10 Tf 12 TL .569987 Tw (Mittels select\(\) wartet der Dispatcher die mei\337te Zeit auf Pakete. Erh\344lt er ein Event, so geht er die Liste) Tj T* 0 Tw 1.889985 Tw (der Listner auf dem betroffenen Prot durch und sucht zu erst nach einem Channel mit der Richtigen) Tj T* 0 Tw .255697 Tw (Gegenstelle. Dabei vermerkt er sich alle Channels ohne Gegenstelle. Findet er kienen mit Gegenstelle so) Tj T* 0 Tw (w\344hlt einen ungebunden und \374bermittelt ihm das Paket.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 86.62362 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 60 re B*
+Q
+q
+BT 1 0 0 1 0 38 Tm 12 TL /F3 10 Tf 0 0 0 rg (for \(UdpChannel chan : listners\) {) Tj T* (    if \(chan.isClosed\) {) Tj T* (        listners.remove\(chan\);) Tj T* (        continue;) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+ 
+endstream
+endobj
+% 'R15': class PDFStream 
+15 0 obj
+% page stream
+<< /Length 1759 >>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 511.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 252 re B*
+Q
+q
+BT 1 0 0 1 0 230 Tm 12 TL /F3 10 Tf 0 0 0 rg (    }) Tj T*  T* (    if \(chan.getRemoteAddress\(\) == null\) {) Tj T* (        unbound.add\(chan\);) Tj T* (        continue;) Tj T* (    }) Tj T*  T* (    if \(remote.equals\(chan.getRemoteAddress\(\)\)\) {) Tj T* (        chan.queue.add\(m\);) Tj T* (        return;) Tj T* (    }) Tj T* (}) Tj T*  T* (log\("There are " + unbound.size\(\) + " unbound chans."\);) Tj T* (if \(unbound.size\(\) ) Tj (>) Tj ( 0\) {) Tj T* (    UdpChannel u = unbound.iterator\(\).next\(\);) Tj T* (    u.queue.add\(m\);) Tj T* (    u.remote = remote;) Tj T* (    return;) Tj T* (}) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 478.8236 cm
+q
+BT 1 0 0 1 0 3.5 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Channel) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 400.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 62 Tm /F1 10 Tf 12 TL .689983 Tw (Zum Empfangen von Paketen verf\374gt jeder Channel \374ber eine Blockinqueue, in die der Dispatcher neue) Tj T* 0 Tw 1.361647 Tw (Pakete pusht. Mit entsprechenden Schnittstellen lassen sich dann sowohl blockierendes als auch nicht) Tj T* 0 Tw 2.428314 Tw (blockierendes Empfangen realsieren \(ich hab aber wie gefordert nur die nicht blockierende Variante) Tj T* 0 Tw 1.44784 Tw (implmentiert\). Das Senden ist einfacher realsiert. Da sich der Channel bei der Konfiguration oder dem) Tj T* 0 Tw .173555 Tw (ersten empfangene Paket seine Gegenstelle merkt, kann er die send Methode des Dispatcher nutzen, die) Tj T* 0 Tw (im Prinzip nur ein Wrapper f\374r das send des Sockets ist.) Tj T* ET
+Q
+Q
+ 
+endstream
+endobj
+% 'R16': class PDFPageLabels 
+16 0 obj
+% Document Root
+<< /Nums [ 0
+ 17 0 R
+ 1
+ 18 0 R ] >>
+endobj
+% 'R17': class PDFPageLabel 
+17 0 obj
+% None
+<< /S /D
+ /St 1 >>
+endobj
+% 'R18': class PDFPageLabel 
+18 0 obj
+% None
+<< /S /D
+ /St 2 >>
+endobj
+xref
+0 19
+0000000000 65535 f
+0000000113 00000 n
+0000000233 00000 n
+0000000398 00000 n
+0000000573 00000 n
+0000000732 00000 n
+0000001011 00000 n
+0000001290 00000 n
+0000001446 00000 n
+0000001712 00000 n
+0000001836 00000 n
+0000002007 00000 n
+0000002191 00000 n
+0000002341 00000 n
+0000002456 00000 n
+0000007519 00000 n
+0000009381 00000 n
+0000009487 00000 n
+0000009564 00000 n
+trailer
+<< /ID 
+ % ReportLab generated PDF document -- digest (http://www.reportlab.com) 
+ [( 7\270\243\220\011\361\207\215l\221\363p\311c\231) ( 7\270\243\220\011\361\207\215l\221\363p\311c\231)] 
+
+ /Info 8 0 R
+ /Root 7 0 R
+ /Size 19 >>
+startxref
+9611
+%%EOF

@@ -16,6 +16,8 @@ public class UdpMessage implements Message {
     }
     
      public UdpMessage(ByteBuffer bb) {
+        data = new byte[bb.position()];
+        bb.rewind();
         bb.get(data);
     }
 

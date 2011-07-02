@@ -17,11 +17,11 @@ public class UdpChannel implements Channel {
     InetSocketAddress remote;
     Boolean isClosed = false;
     
-    public UdpChannel(InetSocketAddress local, InetSocketAddress remote, UdpDispatcher dispatcher){
-        dispatcher.register(this);
+    public UdpChannel(InetSocketAddress local, InetSocketAddress remote, UdpDispatcher dispatcher){    
         this.dispatcher = dispatcher;
         this.local = local;
         this.remote = remote;
+        dispatcher.register(this);
     }
     
     public UdpChannel(InetSocketAddress local, UdpDispatcher dispatcher){

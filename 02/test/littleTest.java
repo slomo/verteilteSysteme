@@ -1,6 +1,7 @@
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import org.junit.Test;
 
@@ -14,24 +15,24 @@ import vsFramework.Message;
 public class littleTest {
     
     @Test
-    public void testSmall(){
+    public void testSmall() throws UnknownHostException{
         
-        byte[] content = "Some content".getBytes();
+        String str = "Some content";
+        byte[] content = str.getBytes();
         Message m = new UdpMessage(content);
         
-        InetSocketAddress localhost = new InetSocketAddress("localhost",1700);
+        InetAddress localhost = InetAddress.getByName("localhost");
         int recvPort = 3000;
         int sendPort = 4000;
         
         UdpChannel recv = UdpChannelFactory.newUdpChannel(recvPort);
         UdpChannel send = UdpChannelFactory.newUdpChannel(sendPort,localhost,recvPort);
         
-        
         send.send(m);
         
         m = recv.recv();
         
-        assertEquals(m.getData(),content);
+        assertEquals(str,new String(m.getData()));
         
     }
 
