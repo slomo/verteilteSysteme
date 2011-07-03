@@ -1,4 +1,4 @@
--module(netd).
+-module(planet_net).
 -behaviour(gen_server).
 
 -include("./messages.hrl").
@@ -7,8 +7,7 @@
 -export([init/1,handle_call/3,code_change/3,handle_cast/2,handle_info/2,terminate/2]).
 -define(UDP_PACKET_LENGTH,200).
 
--record(addr,{port,ip}).
--record(state,{socket,myName,nameTable,distpatcher}).
+-record(state,{socket,myName,nameTable,dispatcher}).
 
 
 % ---- Behaviour interface ----------------------------------------------------------------
@@ -19,23 +18,22 @@ start(Ip,Port,Name,RecvHandler) ->
 
 init({Port,Name}) ->
     % start named
-    {ok,Named} = gen_server:start(named,Name,[]),
     {ok,Socket} = gen_udp:open(Port),
     gen_udp:controlling_process(Socket,self()),
-    {ok,#state{socket=Socket,named=Named}}.
+    {ok,#state{socket=Socket,myName=Name}}.
 
-handle_call(Request,_Sender,State = #state{socket = Socket, nameTable = Table, myName = MyName}) ->
+handle_call(Request,_Sender,State = #state{nameTable = Table, myName = MyName}) ->
     case Request of
         {send,{Ip,Port},Message} ->
-            startSender(Target,Message,State);
+            startSender({Ip,Port},Message,State),
             {reply,ok,State};
         {connect,{Ip,Port}} ->
-            startSender({Ip,Port},#hello{name=MyName}),
+            startSender({Ip,Port},#hello{name=MyName},State),
             {reply,ok,State};
         getAllNeigh ->
             {reply,planet_nt:getAllNeighs(Table),State};
         getMyName ->
-            {reply,MyName,State}
+            {reply,MyName,State};
         {updateNeigh,Name,Addr} ->
             {reply,ok,State#state{ nameTable = planet_nt:putNameAddr(Name,Addr,Table)}}
     end.
@@ -47,7 +45,7 @@ handle_cast(Request, State) ->
 handle_info(Info, State) ->
     case Info of
         {udp, _Socket, IP, InPortNo, Packet} ->
-            spawn(fun() -> processPackage(IP, InPortNo,Packet) end),
+            spawn(fun() -> startReceiver({IP,InPortNo},Packet,State,erlang:self()) end),
             {noreply,State};
         _ ->
             log(handle_unkonwInfo,Info),
@@ -63,7 +61,7 @@ terminate(_Reason,_State = #state{socket= Socket}) ->
 
 % --- sender process
 
-startSender(Target,Message,State{socket=Socket,nameTable=Table}) ->
+startSender(Target,Message,#state{socket=Socket,nameTable=Table}) ->
     erlang:spawn(
         fun
             () ->
@@ -79,55 +77,40 @@ startSender(Target,Message,State{socket=Socket,nameTable=Table}) ->
 
 % --- receiver process
 
-startReceiver(_Source,String,State) ->
-    ok.
 
-processPackage(IP, InPortNo, Packet) ->
-    try decodeMsg(Packet) of
+startReceiver(Source,String,#state{nameTable=Table,myName=MyName,dispatcher=Dispatcher},Netd) ->
+    try planet_proto:decode(String) of
         #hello{name = Name} ->
-            gen_server:call(named,{addEntry,Name,{IP,InPortNo}}),
-            {myName,MyName} = gen_server:call(named,{getMyName}),
-            gen_server:call(netd,{send,{IP,InPortNo},#olleh{name = MyName}});
+            gen_server:call(Netd,{updateNeigh,Name,Source}),
+            gen_server:call(Netd,{send,Source,#olleh{name = MyName}});
         #olleh{name = Name} ->
-            gen_server:call(named,{addEntry,Name,{IP,InPortNo}});
-        Msg ->
-            {name,Sender} = gen_server:call(named,{getName,{IP,InPortNo}}),
-            case Msg of
-                #goods{} ->
-                    warehouse ! Msg;
-                #sdoog{} ->
-                    warehouse ! Msg;
-                #routed{} ->
-                    routeMsg(Sender,Msg)
-            end
+            gen_server:call(Netd,{updateNeigh,Name,Source});
+        RoutedMessage = #routed{} ->
+            case routeMsg(RoutedMessage,MyName) of
+                 RoutedMessage ->
+                    dispatchMsg(RoutedMessage,Dispatcher);
+                {NextHop,NextMessage} ->
+                    gen_server:call(Netd,{send,planet_nt:getAddr(NextHop,Table),NextMessage})
+            end;
+        OtherMessage -> 
+            dispatchMsg(OtherMessage,Dispatcher)
     catch
-        _ -> throw(unableToParseMessage)
+        _SomeFidilingException -> throw(unableToProcessMessage)
     end.
 
-routeMsg(_Sender,Msg = #routed{routeDone=Done,routeTodo=Todo,content=Content}) ->
-    {myName,MyName} = gen_server:call(named,{getMyName}),
+dispatchMsg(Msg,Dispatcher) ->
+    gen_server:call(Dispatcher,Msg).
+
+routeMsg(Msg = #routed{routeDone=Done,routeTodo=Todo,content=Content},MyName) ->
     case Todo of
-        [MyName] -> % dispatch
-            case Content of
-                #peers{} ->
-                    answerPeers(Msg);
-                #sreep{} ->
-                    peered ! Msg;
-                #cost{} ->
-                    warehouse ! Msg;
-                #tsoc{} ->
-                    warehouse ! Msg
-            end;
+        [MyName] ->
+            Msg;
         [MyName|Remain] ->
             NextMsg = #routed{routeTodo=Remain,routeDone = Done ++ [MyName],content=Content},
             [NextHop|_] = Remain,
-            gen_server:call(netd,{send,NextHop,NextMsg});
-        _ -> throw({invalidRoutedMessage,Msg})
+            {NextHop,NextMsg};
+        _OtherRoutes -> throw({invalidRoutedMessage,Msg})
     end.
 
-answerPeers(#routed{routeDone=Done,routeTodo=Todo,content=#peers{}}) ->
-    {neighs,Neighs} = gen_server:call(named,{getNeighs}),
-    NewRoute = lists:reverse(Done),
-    [NextHop|_] = NewRoute,
-    sendMsg(NextHop,#routed{routeDone=Todo,routeTodo=NewRoute,content=#sreep{peers=Neighs}}).
-
+log(A,B) ->
+    error_logger:info_report({A,B}).
