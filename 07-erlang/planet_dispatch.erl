@@ -6,7 +6,8 @@
 -include("./messages.hrl").
 -record(state,{net,ets,sdoog,sreep,tsoc}).
 
-init(Net) ->
+init({Port,Name}) ->
+    Net = gen_server:start(planet_net,{Port,Name},[]);
     Ets = ets:new(yeah,[set]),
     {ok,#state{ets=Ets,net=Net}}.
 

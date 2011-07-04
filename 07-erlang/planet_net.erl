@@ -85,15 +85,16 @@ startReceiver(Source,String,#state{nameTable=Table,myName=MyName,dispatcher=Disp
             gen_server:call(Netd,{updateNeigh,Name,Source});
         RoutedMessage = #routed{} ->
             case routeMsg(RoutedMessage,MyName) of
-                 RoutedMessage#routed{content=Content} ->
-                    case Content of 
-                        #peers{} -> 
-                            {NextHop,NextMessage} = answerPeers(RoutedMessage,Table);
+                 #routed{content=Content} ->
+                    case Content of
+                        #peers{} ->
+                            {NextHop,NextMessage} = answerPeers(RoutedMessage,Table),
+                            gen_server:call(Netd,{send,NextHop,NextMessage});
                         _ -> 
                             dispatchMsg(RoutedMessage,Dispatcher)
                     end;
                 {NextHop,NextMessage} ->
-                    gen_server:call(Netd,{send,planet_nt:getAddr(NextHop,Table),NextMessage})
+                    gen_server:call(Netd,{send,NextHop,NextMessage})
             end;
         OtherMessage -> 
             dispatchMsg(OtherMessage,Dispatcher)
