@@ -24,8 +24,8 @@ init({Port,Name}) ->
 
 handle_call(Request,_Sender,State = #state{nameTable = Table, myName = MyName}) ->
     case Request of
-        {send,{Ip,Port},Message} ->
-            startSender({Ip,Port},Message,State),
+        {send,Target,Message} ->
+            startSender(Target,Message,State),
             {reply,ok,State};
         {connect,{Ip,Port}} ->
             startSender({Ip,Port},#hello{name=MyName},State),
@@ -76,8 +76,6 @@ startSender(Target,Message,#state{socket=Socket,nameTable=Table}) ->
         end).
 
 % --- receiver process
-
-
 startReceiver(Source,String,#state{nameTable=Table,myName=MyName,dispatcher=Dispatcher},Netd) ->
     try planet_proto:decode(String) of
         #hello{name = Name} ->
@@ -87,8 +85,13 @@ startReceiver(Source,String,#state{nameTable=Table,myName=MyName,dispatcher=Disp
             gen_server:call(Netd,{updateNeigh,Name,Source});
         RoutedMessage = #routed{} ->
             case routeMsg(RoutedMessage,MyName) of
-                 RoutedMessage ->
-                    dispatchMsg(RoutedMessage,Dispatcher);
+                 RoutedMessage#routed{content=Content} ->
+                    case Content of 
+                        #peers{} -> 
+                            {NextHop,NextMessage} = answerPeers(RoutedMessage,Table);
+                        _ -> 
+                            dispatchMsg(RoutedMessage,Dispatcher)
+                    end;
                 {NextHop,NextMessage} ->
                     gen_server:call(Netd,{send,planet_nt:getAddr(NextHop,Table),NextMessage})
             end;
@@ -98,8 +101,14 @@ startReceiver(Source,String,#state{nameTable=Table,myName=MyName,dispatcher=Disp
         _SomeFidilingException -> throw(unableToProcessMessage)
     end.
 
+answerPeers(#routed{routeDone=Done,routeTodo=Todo,content=#peers{}},Table) ->
+    Neighs = planet_nt:getAllNeighs(Table),
+    NewRoute = lists:reverse(Done),
+    [NextHop|_] = NewRoute,
+    {NextHop,#routed{routeDone=Todo,routeTodo=NewRoute,content=#sreep{peers=Neighs}}}.
+
 dispatchMsg(Msg,Dispatcher) ->
-    gen_server:call(Dispatcher,Msg).
+    gen_server:cast(Dispatcher,Msg).
 
 routeMsg(Msg = #routed{routeDone=Done,routeTodo=Todo,content=Content},MyName) ->
     case Todo of
