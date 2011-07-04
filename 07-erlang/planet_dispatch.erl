@@ -1,35 +1,40 @@
 -module(planet_dispatch).
 -behaviour(gen_server).
--export([init/1,handle_call/3,code_change/3,handle_cast/2,handle_info/2,terminate/2]).
-
+-export([init/1,handle_call/3,code_change/3,handle_cast/2,handle_info/2,
+        terminate/2]).
 
 -include("./messages.hrl").
--record(state,{listner,planetPids,net}).
--record(listner,{sdoog,sreep,tsoc}).
--record(lager,{planetPids}).
+-record(state,{net,ets,sdoog,sreep,tsoc}).
 
-handle_cast(Msg, State,State #state{listner=Listner,net=Net,lager=Lager) ->
+init(Net) ->
+    Ets = ets:new(yeah,[set]),
+    {ok,#state{ets=Ets,net=Net}}.
+
+handle_call(_Msg,_Sender,State) ->
+    {reply,ok,State}.
+
+handle_cast(Msg, State=#state{net=Net, ets=Ets}) ->
      case Msg of
          #goods{} ->
-            updatePlanetPids(PlanetPids,Net),
-            startGoodHandler(Lager,Net).
-            State#state{planetPids=PlanetPids}
+             NewListner = startGoodsHandler(Net,Ets,Msg),
+             {noreply,State#state{sdoog= NewListner}};
          #sdoog{} ->
              State#state.sdoog ! Msg;
          #routed{content=ContentMsg} ->
              case ContentMsg of
                  #peers{} ->
-                     State#state.peers ! Msg;
+                     ok;
                  #sreep{} ->
                      State#state.sreep ! Msg;
                  #cost{} ->
-                     State#state.cost ! Msg;
+                     ok;
                  #tsoc{} ->
                      State#state.tsoc ! Msg
-         end 
+         end
     end.
 
-handle_info(Info,State) ->
+
+handle_info(_Info,State) ->
     {noreply,State}.
 
 code_change(_OldVsn,State,_Extra) ->
@@ -38,75 +43,81 @@ code_change(_OldVsn,State,_Extra) ->
 terminate(_Reason,_State) ->
     ty.
 
-% ----------------------------------------------------------------
+% ----------------------------------------------------------------------------
 
-updatePlanetPids(OldPids,Net) ->
-    Neighs = gen_server:call(Net,{getAllNeighs}),
-    lists:map(
+getUnixSeconds() ->
+    {Mega,Sec,_} = erlang:now(),
+    Mega * 1000 * 1000 + Sec.
+
+startGoodsHandler(Net,Ets,Msg) ->
+    spawn( fun() -> goodsHandler(Net,Ets,Msg) end).
+
+goodsHandler(Net,Ets,#goods{src=Src,goods=SrcGoods}) ->
+    Now = getUnixSeconds(),
+    true = ets:insert(Ets,{{goods,Src},{Now,SrcGoods}}),
+    AllGoods = checkGoods(Net,Ets),
+    MyName = gen_server:call(Net,getMyName),
+    gen_server:call(Net,{send,Src,#goods{src=MyName,goods=AllGoods}}).
+
+checkGoods(Net,Ets) ->
+    Now = getUnixSeconds(),
+    Neighs = gen_server:call(Net,getAllNeighs),
+    %% get all nodes that shall be chcked
+    ToCheck = lists:filter(
         fun
             (Neigh) ->
-                case lists:keyfind(Neigh,1,OldPids) ->
-                    {Neigh,Pid} ->
-                        {Neigh,Pid};
-                    false ->
-                        {Neigh,startPlanetWareProxy(Neigh,Net)}
+                Key = {goods,Neigh},
+                case ets:lookup(Ets,Key) of
+                    [] ->
+                        true = ets:insert(Ets,{Key,{Now,[]}});
+                    [Key,{Time,Goods}] ->
+                        if
+                            Time + 30 < Now ->
+                                true = ets:insert(Ets,{Key,{Now,Goods}});
+                            true ->
+                                false
+                        end
                 end
-        end,OldPids).
+        end,Neighs),
+    [{myGoods,MyGoods}] = ets:lookup(Ets,myGoods),
+    sendGoodsRequest(Net,ToCheck,MyGoods),
+    collectResponse(ToCheck,Ets),
+    AllGoods = ets:foldr(
+        fun
+            ({{goods,_Neigh},{_Time,Goods}},Acc) ->
+                Acc ++ Goods;
+            (_,Acc) ->
+                Acc
+        end,
+        [],
+        Ets) ++ MyGoods,
+    ets:insert(Ets,{myGoods,AllGoods}),
+    AllGoods.
 
+sendGoodsRequest(Net,ToCheck,MyGoods) ->
+    MyName = gen_server:call(Net,getMyName),
+    Msg = #goods{src=MyName,goods=MyGoods},
+    lists:forEach(
+        fun
+            (Planet) ->
+                gen_server:call(Net,{send,Planet,Msg})
+        end,ToCheck).
 
-startPlanetWareProxy(Net) ->
-
-
-% --------------------------------------------------------------------
-
-planetWareProxy(LastTime,Neigh,Net,RemoteGoods) ->
-    {Mega,Secs,_Micro} = erlang:now(),
-    Now = 1000 * 1000 * Mega + Sec,
-    receive 
-        {Src,getGoods,Goods} ->
-            if
-                Lastime + 30 < Now ->
-                    MyName = gen_server:call(Net,getMyName),
-                    gen_server:call(Net,{send,Neigh,#goods{src=MyName,goods=Goods}}),
-                    receive 
-                        #sdoog{src=Neigh,goods=NewRemoteGoods} ->
-                            planetWareProxy(Now,
-
-
-
-                
-
+collectResponse(ToCheck,Ets) ->
+    Now = getUnixSeconds(),
+    lists:forEach(
+        fun
+            (Neigh) ->
+                Key = {goods,Neigh},
+                receive
+                    #sdoog{src=Neigh,goods=Goods} ->
+                        true = ets:insert(Ets,{Key,{Now,Goods}})
+                after
+                    2000 ->
+                        skip
+                end
+        end,ToCheck),
+    ok.
 % ---------------------------------------------------------------------------
 
-startWH() -> do(#wareState{ goods = [{"PetersMütze",20}], ages = []}).
-
-% ages = dict
-do(State= #wareState{goods=Lager,ages = Ages}) ->
-    {myName,MyName} = gen_server:call(named,{getMyName}),
-    receive 
-        #goods{src = Src, goods = Goods} ->
-            {_,Now,_} = now(),
-            {neighs,Neighs} = gen_server:call(named,{getNeighs}),
-            AdditionalAges = lists:map(fun(New) -> {New,0} end,
-                lists:filter(fun(Neigh) -> lists:keyfind(Neigh,1,Ages) =:= false end, Neighs)
-            ),
-            UpdatedAges = lists:map(
-                fun({Node,Age}) -> 
-                        if
-                            Age + 30 < Now -> 
-                                sendMsg(Node,#goods{goods=Goods,src=MyName}),
-                                {Node,Now};
-                            true ->
-                                {Node,Age}
-                        end
-                end,Ages ++ AdditionalAges),
-            NewGoods =  lists:filter(
-                fun({Good,Ttl}) -> (lists:keyfind(Good,1,Lager) =:= false) and (Ttl > 0) end, Goods),
-            UpdatedGoods = Goods ++ lists:map(fun({Good,Ttl}) -> {Good,Ttl - 1} end,NewGoods),
-            sendMsg(Src,#sdoog{goods=Goods,src=MyName}),
-            do(#wareState{goods = UpdatedGoods, ages = UpdatedAges});
-        #routed{ routeDone=Done, content = #cost{good = Good}} ->
-            Todo = [NextHop|_] = lists:reverse(Done),
-            sendMsg(NextHop,#routed{ routeTodo = Todo, routeDone = MyName, content = #tsoc{good=Good,buyPrice=100,buyAmount=100,sellPrice=100,sellAmount=100}})
-    end.
 
