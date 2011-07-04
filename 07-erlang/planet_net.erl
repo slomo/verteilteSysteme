@@ -39,8 +39,11 @@ handle_call(Request,_Sender,State = #state{nameTable = Table, myName = MyName}) 
     end.
 
 handle_cast(Request, State) ->
-    log(handel_castUnkonwMEssage,Request),
-    {noreply,State}.
+    case Request of
+        {send,Target,Message} ->
+            startSender(Target,Message,State),
+            {noreply,State}
+    end.
 
 handle_info(Info, State) ->
     case Info of
@@ -89,14 +92,14 @@ startReceiver(Source,String,#state{nameTable=Table,myName=MyName,dispatcher=Disp
                     case Content of
                         #peers{} ->
                             {NextHop,NextMessage} = answerPeers(RoutedMessage,Table),
-                            gen_server:call(Netd,{send,NextHop,NextMessage});
-                        _ -> 
+                            gen_server:cast(Netd,{send,NextHop,NextMessage});
+                        _ ->
                             dispatchMsg(RoutedMessage,Dispatcher)
                     end;
                 {NextHop,NextMessage} ->
-                    gen_server:call(Netd,{send,NextHop,NextMessage})
+                    gen_server:cast(Netd,{send,NextHop,NextMessage})
             end;
-        OtherMessage -> 
+        OtherMessage ->
             dispatchMsg(OtherMessage,Dispatcher)
     catch
         _SomeFidilingException -> throw(unableToProcessMessage)
